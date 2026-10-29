@@ -1,0 +1,4 @@
+Invoice number,Supplier,Invoice date,Total,Currency
+INV-1001,Supplier 1 Ltd,2026-09-14,1344.0,USD
+INV-1002,Supplier 2 Ltd,2026-09-14,1344.0,USD
+INV-1006,Supplier 6 Ltd,2026-09-14,1390,USD

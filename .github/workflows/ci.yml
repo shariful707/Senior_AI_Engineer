@@ -1,0 +1,47 @@
+name: Verify application
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: folio
+          POSTGRES_PASSWORD: test-password
+          POSTGRES_DB: documents
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U folio -d documents"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    env:
+      POSTGRES_TEST_URL: postgres://folio:test-password@localhost:5432/documents
+      REDIS_TEST_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24', cache: npm}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr fonts-dejavu-core
+      - run: npm ci
+      - run: python -m venv .venv && .venv/bin/python -m pip install -r apps/ocr-service/requirements.txt
+      - run: .venv/bin/python eval/generate_fixtures.py
+      - run: npm test
+      - run: .venv/bin/python -m pytest apps/ocr-service/tests -q
+      - run: npm run build
+      - run: npm run eval
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/browser-check.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evaluation-and-browser-results
+          path: |
+            eval/results.json
+            docs/evaluation.md
+            docs/screenshots
+            data/**/services.log

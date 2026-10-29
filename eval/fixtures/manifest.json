@@ -1,0 +1,407 @@
+[
+  {
+    "filename": "digital-1.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1001",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 1 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": false
+  },
+  {
+    "filename": "digital-2.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1002",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 2 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": false
+  },
+  {
+    "filename": "digital-3.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1003",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 3 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1400,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": true
+  },
+  {
+    "filename": "digital-4.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": null,
+      "invoice_date": null,
+      "supplier_name": "Supplier 4 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": null,
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": true
+  },
+  {
+    "filename": "digital-5.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1005",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 5 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": false
+  },
+  {
+    "filename": "digital-6.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1006",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 6 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": false
+  },
+  {
+    "filename": "image-7.png",
+    "category": "image_ocr",
+    "expected": {
+      "invoice_number": "INV-1007",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 7 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  },
+  {
+    "filename": "image-8.jpg",
+    "category": "image_ocr",
+    "expected": {
+      "invoice_number": "INV-1008",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 8 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  },
+  {
+    "filename": "image-9.tiff",
+    "category": "image_ocr",
+    "expected": {
+      "invoice_number": "INV-1009",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 9 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  },
+  {
+    "filename": "scanned.pdf",
+    "category": "scanned_pdf",
+    "expected": {
+      "invoice_number": "INV-1010",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 10 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  },
+  {
+    "filename": "poor-quality.png",
+    "category": "poor_quality",
+    "expected": {
+      "invoice_number": "INV-1011",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 11 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  },
+  {
+    "filename": "ledger.xlsx",
+    "category": "spreadsheet",
+    "expected": null,
+    "ledger_rows": [
+      {
+        "invoice_number": "INV-1001",
+        "supplier_name": "Supplier 1 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1002",
+        "supplier_name": "Supplier 2 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1006",
+        "supplier_name": "Supplier 6 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1390,
+        "currency": "USD"
+      }
+    ]
+  },
+  {
+    "filename": "ledger.csv",
+    "category": "spreadsheet",
+    "expected": null,
+    "ledger_rows": [
+      {
+        "invoice_number": "INV-1001",
+        "supplier_name": "Supplier 1 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1002",
+        "supplier_name": "Supplier 2 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1006",
+        "supplier_name": "Supplier 6 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1390,
+        "currency": "USD"
+      }
+    ]
+  },
+  {
+    "filename": "ledger.xls",
+    "category": "spreadsheet",
+    "expected": null,
+    "ledger_rows": [
+      {
+        "invoice_number": "INV-1001",
+        "supplier_name": "Supplier 1 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1002",
+        "supplier_name": "Supplier 2 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1344.0,
+        "currency": "USD"
+      },
+      {
+        "invoice_number": "INV-1006",
+        "supplier_name": "Supplier 6 Ltd",
+        "invoice_date": "2026-09-14",
+        "total": 1390,
+        "currency": "USD"
+      }
+    ]
+  },
+  {
+    "filename": "corrupted.pdf",
+    "category": "corrupted",
+    "expected": null,
+    "expected_failure": true
+  },
+  {
+    "filename": "blank.pdf",
+    "category": "blank",
+    "expected": null,
+    "expected_failure": true
+  },
+  {
+    "filename": "conflicting-copy.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1001",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 1 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 300,
+      "total": 1500,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    },
+    "needs_review": true
+  },
+  {
+    "filename": "negative.pdf",
+    "category": "digital_pdf",
+    "expected": {
+      "invoice_number": "INV-1012",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 12 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": -10,
+      "tax": 0,
+      "total": -10,
+      "currency": "USD",
+      "line_items": []
+    },
+    "needs_review": true
+  },
+  {
+    "filename": "large-1000-pages.pdf",
+    "category": "large_pdf",
+    "expected": {
+      "invoice_number": "INV-1020",
+      "invoice_date": "2026-09-14",
+      "supplier_name": "Supplier 20 Ltd",
+      "customer_name": "Northwind Traders",
+      "subtotal": 1200.0,
+      "tax": 144.0,
+      "total": 1344.0,
+      "currency": "USD",
+      "line_items": [
+        {
+          "description": "Widget A",
+          "quantity": 10,
+          "unit_price": 120,
+          "line_total": 1200
+        }
+      ]
+    }
+  }
+]

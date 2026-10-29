@@ -1,0 +1,84 @@
+name: folio
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: documents
+      POSTGRES_USER: folio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-postgres-password}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U folio -d documents]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes', --requirepass, '${REDIS_PASSWORD:-local-redis-password}']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, -a, '${REDIS_PASSWORD:-local-redis-password}', ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  ocr:
+    build: ./apps/ocr-service
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-local-internal-token-change-me}
+      MAX_PAGES: ${MAX_PAGES:-1200}
+      MAX_TEXT_CHARS: ${MAX_TEXT_CHARS:-2000000}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
+      MAX_SHEET_ROWS: ${MAX_SHEET_ROWS:-10000}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build: .
+    ports: [127.0.0.1:3001:3001]
+    environment: &app-env
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      DATA_DIR: /app/data
+      DATABASE_URL: postgres://folio:${POSTGRES_PASSWORD:-local-postgres-password}@postgres:5432/documents
+      REDIS_URL: redis://:${REDIS_PASSWORD:-local-redis-password}@redis:6379
+      OCR_URL: http://ocr:8000
+      API_TOKEN: ${API_TOKEN:-local-workspace-token-change-me}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-local-internal-token-change-me}
+      EXTRACTION_MODE: ${EXTRACTION_MODE:-offline}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      SEMANTIC_SEARCH: ${SEMANTIC_SEARCH:-false}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
+    volumes: [uploads:/app/data]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      ocr: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3001/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  worker:
+    build: .
+    command: [node, apps/worker/src/main.js]
+    environment: *app-env
+    volumes: [uploads:/app/data]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      ocr: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  postgres-data:
+  redis-data:
+  uploads:

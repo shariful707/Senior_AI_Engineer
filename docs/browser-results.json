@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-10-29T14:42:34.938Z",
+  "checks": [
+    "multi-file upload, queued processing, real OCR and corrupt-file isolation",
+    "inline correction resolves validation and writes audit history",
+    "supplier search and authenticated source download",
+    "PDF-to-Excel mismatch with a link to the related document",
+    "failed-job reprocessing",
+    "mobile layout stays within viewport"
+  ],
+  "errors": [],
+  "recording": false,
+  "duration_seconds": 9
+}

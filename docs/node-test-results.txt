@@ -1,0 +1,35 @@
+✔ authentication, consistent errors and parameter validation (149.0665ms)
+✔ API and worker can initialize the same fresh SQLite database concurrently (19.157ms)
+✔ upload returns queued and stores a durable job (30.5739ms)
+✔ signature mismatch rejects batch and removes uploaded files (28.6406ms)
+✔ job claim is exclusive and expired leases recover (2.9599ms)
+✔ detail, correction, keyword search and history work together (56.9757ms)
+✔ invalid corrections and reprocessing a busy document fail clearly (31.9731ms)
+✔ cross-document and ledger flags update in both directions after a correction (43.085ms)
+✔ AI extraction uses strict schema, retries malformed JSON and audits both attempts (33.3279ms)
+✔ missing schema keys fail after exactly one corrective retry (1.7265ms)
+✔ rate limits are retryable and refusal is terminal (1.1392ms)
+✔ large-document merge never picks a conflicting field value (1.1021ms)
+✔ semantic embeddings enforce exact dimensions (1.7124ms)
+✔ transient parser failure is retried and recovery commits the result (61.0608ms)
+✔ permanent parsing failure does not retry or crash the worker (7.7392ms)
+✔ a stale worker cannot replace a newly leased document result (6.1487ms)
+✔ ledger mismatch is visible on both records and clears after correction (27.5271ms)
+﹣ Postgres migration, full text, pgvector, cross validation and concurrent claims (0.9826ms) # SKIP
+﹣ Redis/BullMQ dispatches a real job (0.1587ms) # SKIP
+✔ clean invoice passes all validation (3.492ms)
+✔ required values and arithmetic inconsistencies are flagged (0.4211ms)
+✔ date validity, confidence, tax sanity and negatives (0.32ms)
+✔ rounding tolerance permits one cent and rejects larger errors (0.2702ms)
+✔ line multiplication and negative quantity are checked (1.601ms)
+✔ cross verification only compares known fields and uses amount tolerance (0.6499ms)
+✔ offline extraction never calculates absent amounts (2.2975ms)
+✔ offline extraction stores an audit entry (0.7371ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 2601.1203

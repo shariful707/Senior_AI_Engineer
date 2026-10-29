@@ -1,0 +1,20 @@
+node_modules/
+.venv/
+.env
+data/
+apps/web/dist/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+test-results/
+playwright-report/
+*.log
+private/
+
+# Local-only explanation and planning material
+*.docx
+/senior-ai-enginner.pdf
+/docs/implementation.md
+/docs/operations.md
+/docs/walkthrough.md
+/docs/walkthrough-metadata.json
