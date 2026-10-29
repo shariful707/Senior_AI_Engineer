@@ -12,6 +12,7 @@ import {documentDetail,history,saveInvoice,reconcile,lockReconciliation,now} fro
 import {enqueue,createDispatcher} from './queue.js';
 import {validatePatch} from '../../../packages/shared-types/invoice.js';
 import {embed} from './extraction.js';
+import {seedSamples,SAMPLE_BATCH} from './samples.js';
 
 const statuses=['queued','processing','completed','needs_review','failed'];
 export class ApiError extends Error {constructor(status,code,message){super(message);this.status=status;this.code=code;}}
@@ -34,13 +35,22 @@ export async function createApp(db,{dispatcher=createDispatcher(),apiToken=confi
   app.use(helmet({contentSecurityPolicy:{directives:{'img-src':["'self'",'data:','blob:'],'frame-src':["'self'",'blob:']}}}));
   app.use(cors({origin:process.env.CORS_ORIGIN||'http://localhost:5173',exposedHeaders:['Content-Disposition']}));
   app.use(express.json({limit:'2mb'}));
-  app.get('/health',async(req,res)=>{await db.query('SELECT 1');res.json({status:'ok',database:db.postgres?'postgres':'sqlite',extraction_mode:config.extractionMode,semantic_search:config.semantic&&db.postgres&&Boolean(config.apiKey),authentication: Boolean(apiToken)});});
+  app.get('/health',async(req,res)=>{await db.query('SELECT 1');res.json({status:'ok',database:db.postgres?'postgres':'sqlite',extraction_mode:config.extractionMode,semantic_search:config.semantic&&db.postgres&&Boolean(config.apiKey),authentication:Boolean(apiToken),limits:{max_upload_mb:config.maxUpload/1024/1024,max_files:20}});});
   const router=express.Router();
   router.use((req,res,next)=>{
     if(apiToken && !safeEqual(req.headers.authorization||'',`Bearer ${apiToken}`))return next(new ApiError(401,'UNAUTHORIZED','A valid workspace token is required.'));
     next();
   });
   router.use(rateLimit({windowMs:60000,limit:300,standardHeaders:'draft-8',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:{code:'RATE_LIMITED',message:'Too many requests; try again in a minute.'}})}));
+  app.locals.loadSamples=async options=>{
+    const documents=await seedSamples(db,options);
+    for(const document of documents)if(document.status==='queued')void dispatcher.notify(document.id);
+    return documents;
+  };
+  router.post('/workspace/samples',async(req,res)=>{
+    const documents=await app.locals.loadSamples();
+    res.status(documents.some(d=>d.status==='queued')?202:200).json({documents,sample:true});
+  });
   const upload=multer({storage:multer.diskStorage({destination:path.join(config.dataDir,'uploads'),filename:(req,file,cb)=>cb(null,randomUUID())}),limits:{fileSize:config.maxUpload,files:20,fields:0}}).any();
   router.post('/documents',(req,res,next)=>upload(req,res,error=>{
     if(error){Promise.all((req.files||[]).map(f=>unlink(f.path).catch(()=>{}))).finally(()=>next(error));return;}
@@ -69,12 +79,14 @@ export async function createApp(db,{dispatcher=createDispatcher(),apiToken=confi
     } finally {if(!committed)await Promise.all(files.map(f=>unlink(f.path).catch(()=>{})));}
   });
   router.get('/documents',async(req,res)=>{
-    const {query='',status='',mode='keyword'}=req.query;
+    const {query='',status='',mode='keyword',sample=''}=req.query;
     const page=Number(req.query.page||1),limit=Number(req.query.limit||25);
-    if(typeof query!=='string'||query.length>500||typeof status!=='string'||status&&!statuses.includes(status)||!Number.isInteger(page)||page<1||!Number.isInteger(limit)||limit<1||limit>100||!['keyword','semantic'].includes(mode))throw new ApiError(400,'INVALID_QUERY','Invalid search, status, pagination or search mode.');
+    if(typeof query!=='string'||query.length>500||typeof status!=='string'||status&&!statuses.includes(status)&&status!=='active'||!Number.isInteger(page)||page<1||!Number.isInteger(limit)||limit<1||limit>100||!['keyword','semantic'].includes(mode)||!['','true','false'].includes(sample))throw new ApiError(400,'INVALID_QUERY','Invalid search, status, pagination or search mode.');
     const values=[],where=[];
     const bind=value=>{values.push(value);return `$${values.length}`;};
-    if(status)where.push(`d.status=${bind(status)}`);
+    if(status==='active')where.push("d.status IN ('queued','processing')");
+    else if(status)where.push(`d.status=${bind(status)}`);
+    if(sample)where.push(`d.batch_id${sample==='true'?'=':'<>'}${bind(SAMPLE_BATCH)}`);
     let score='NULL AS similarity',order='d.uploaded_at DESC,d.id DESC';
     if(query && mode==='semantic') {
       if(!db.postgres||!config.semantic||!config.apiKey)throw new ApiError(503,'SEMANTIC_UNAVAILABLE','Semantic search requires PostgreSQL, enabled embeddings and an AI key.');
@@ -89,9 +101,10 @@ export async function createApp(db,{dispatcher=createDispatcher(),apiToken=confi
     // Semantic placeholders appear only in SELECT/ORDER BY and are excluded from count SQL.
     const countValues=query&&mode==='semantic'?values.slice(0,-1):values;
     const total=Number((await db.query(`SELECT count(*) AS count ${from}`,countValues)).rows[0].count);
-    const rows=(await db.query(`SELECT d.id,d.original_filename,d.file_type,d.status,d.stage,d.uploaded_at,d.processing_ms,d.error_message,i.invoice_number,i.supplier_name,i.total,i.currency,${score} ${from} ORDER BY ${order} LIMIT ${bind(limit)} OFFSET ${bind((page-1)*limit)}`,values)).rows;
+    const rows=(await db.query(`SELECT d.id,d.original_filename,d.file_type,d.batch_id,d.status,d.stage,d.uploaded_at,d.processing_ms,d.error_message,i.invoice_number,i.supplier_name,i.total,i.currency,${score} ${from} ORDER BY ${order} LIMIT ${bind(limit)} OFFSET ${bind((page-1)*limit)}`,values)).rows.map(row=>({...row,is_sample:row.batch_id===SAMPLE_BATCH}));
     const counts=(await db.query('SELECT status,count(*) AS count FROM documents GROUP BY status')).rows;
-    res.json({documents:rows,total,page,limit,pages:Math.ceil(total/limit),counts:Object.fromEntries(counts.map(r=>[r.status,Number(r.count)]))});
+    const sampleCount=Number((await db.query('SELECT count(*) AS count FROM documents WHERE batch_id=$1',[SAMPLE_BATCH])).rows[0].count);
+    res.json({documents:rows,total,page,limit,pages:Math.ceil(total/limit),sample_count:sampleCount,counts:Object.fromEntries(counts.map(r=>[r.status,Number(r.count)]))});
   });
   router.param('id',(req,res,next,id)=>{if(!/^[a-f0-9-]{36}$/i.test(id))return next(new ApiError(404,'NOT_FOUND','Document not found.'));next();});
   router.get('/documents/:id/status',async(req,res)=>{

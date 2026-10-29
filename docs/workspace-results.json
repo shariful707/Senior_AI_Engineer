@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-29T15:22:23.723Z",
+  "checks": [
+    "local workspace explains access and does not request an unnecessary token",
+    "sample action processes five real documents and is repeatable without duplicates",
+    "all summary cards, status tabs, search clearing and keyboard workspace navigation work",
+    "add/remove/cancel/save line editing, validation, persistent feedback and source download work",
+    "related-record links, source sheet navigation and real reprocessing work",
+    "missing links and upload/network failures show recoverable states rather than blank pages",
+    "bulk-upload guard and real next/previous document pagination work",
+    "mobile settings, close/escape and navigation remain accessible",
+    "protected workspace rejects invalid keys, verifies valid keys, authorizes samples and disconnects"
+  ],
+  "errors": []
+}

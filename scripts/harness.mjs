@@ -4,10 +4,10 @@ import {mkdir,open} from 'node:fs/promises';
 import path from 'node:path';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function freePort(){const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const port=server.address().port;await new Promise(r=>server.close(r));return port;}
-export async function startHarness({dataDir,mode='offline'}={}){
+export async function startHarness({dataDir,mode='offline',apiToken=''}={}){
   const apiPort=await freePort(),ocrPort=await freePort();
   await mkdir(dataDir,{recursive:true});
-  const env={...process.env,PORT:String(apiPort),HOST:'127.0.0.1',OCR_URL:`http://127.0.0.1:${ocrPort}`,DATA_DIR:dataDir,DATABASE_URL:'',REDIS_URL:'',EXTRACTION_MODE:mode,API_TOKEN:'',INTERNAL_TOKEN:'',NODE_ENV:'test',SEMANTIC_SEARCH:'false'};
+  const env={...process.env,PORT:String(apiPort),HOST:'127.0.0.1',OCR_URL:`http://127.0.0.1:${ocrPort}`,DATA_DIR:dataDir,DATABASE_URL:'',REDIS_URL:'',EXTRACTION_MODE:mode,API_TOKEN:apiToken,INTERNAL_TOKEN:'',NODE_ENV:'test',SEMANTIC_SEARCH:'false',SEED_SAMPLE_DOCUMENTS:'false'};
   const python=path.resolve(process.platform==='win32'?'.venv/Scripts/python.exe':'.venv/bin/python');
   const children=[],log=await open(path.join(dataDir,'services.log'),'w');
   const launch=(exe,args)=>{

@@ -11,3 +11,4 @@ eval
 docs
 test-results
 **/__pycache__
+!apps/api/samples/*.pdf

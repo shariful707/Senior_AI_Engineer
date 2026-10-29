@@ -1,35 +1,40 @@
-✔ authentication, consistent errors and parameter validation (149.0665ms)
-✔ API and worker can initialize the same fresh SQLite database concurrently (19.157ms)
-✔ upload returns queued and stores a durable job (30.5739ms)
-✔ signature mismatch rejects batch and removes uploaded files (28.6406ms)
-✔ job claim is exclusive and expired leases recover (2.9599ms)
-✔ detail, correction, keyword search and history work together (56.9757ms)
-✔ invalid corrections and reprocessing a busy document fail clearly (31.9731ms)
-✔ cross-document and ledger flags update in both directions after a correction (43.085ms)
-✔ AI extraction uses strict schema, retries malformed JSON and audits both attempts (33.3279ms)
-✔ missing schema keys fail after exactly one corrective retry (1.7265ms)
-✔ rate limits are retryable and refusal is terminal (1.1392ms)
-✔ large-document merge never picks a conflicting field value (1.1021ms)
-✔ semantic embeddings enforce exact dimensions (1.7124ms)
-✔ transient parser failure is retried and recovery commits the result (61.0608ms)
-✔ permanent parsing failure does not retry or crash the worker (7.7392ms)
-✔ a stale worker cannot replace a newly leased document result (6.1487ms)
-✔ ledger mismatch is visible on both records and clears after correction (27.5271ms)
-﹣ Postgres migration, full text, pgvector, cross validation and concurrent claims (0.9826ms) # SKIP
-﹣ Redis/BullMQ dispatches a real job (0.1587ms) # SKIP
-✔ clean invoice passes all validation (3.492ms)
-✔ required values and arithmetic inconsistencies are flagged (0.4211ms)
-✔ date validity, confidence, tax sanity and negatives (0.32ms)
-✔ rounding tolerance permits one cent and rejects larger errors (0.2702ms)
-✔ line multiplication and negative quantity are checked (1.601ms)
-✔ cross verification only compares known fields and uses amount tolerance (0.6499ms)
-✔ offline extraction never calculates absent amounts (2.2975ms)
-✔ offline extraction stores an audit entry (0.7371ms)
-ℹ tests 27
+✔ authentication, consistent errors and parameter validation (158.653ms)
+✔ API and worker can initialize the same fresh SQLite database concurrently (19.4139ms)
+✔ upload returns queued and stores a durable job (24.948ms)
+✔ signature mismatch rejects batch and removes uploaded files (25.2761ms)
+✔ job claim is exclusive and expired leases recover (2.7484ms)
+✔ detail, correction, keyword search and history work together (76.8658ms)
+✔ invalid corrections and reprocessing a busy document fail clearly (48.7743ms)
+✔ cross-document and ledger flags update in both directions after a correction (34.9344ms)
+✔ AI extraction uses strict schema, retries malformed JSON and audits both attempts (33.8799ms)
+✔ missing schema keys fail after exactly one corrective retry (1.5989ms)
+✔ rate limits are retryable and refusal is terminal (1.0653ms)
+✔ large-document merge never picks a conflicting field value (1.0526ms)
+✔ semantic embeddings enforce exact dimensions (1.5639ms)
+✔ transient parser failure is retried and recovery commits the result (55.9486ms)
+✔ permanent parsing failure does not retry or crash the worker (7.3529ms)
+✔ a stale worker cannot replace a newly leased document result (5.4803ms)
+✔ ledger mismatch is visible on both records and clears after correction (25.6176ms)
+﹣ Postgres migration, full text, pgvector, cross validation and concurrent claims (1.6935ms) # SKIP
+﹣ Redis/BullMQ dispatches a real job (0.2676ms) # SKIP
+✔ sample creation requires workspace access (81.7076ms)
+✔ samples are real files queued once, including concurrent requests (23.4551ms)
+✔ sample and active filters return labeled queued examples (37.879ms)
+✔ loading samples again is idempotent through the API (5.8188ms)
+✔ automatic samples do not change a workspace that already has user documents (15.3579ms)
+✔ clean invoice passes all validation (3.4307ms)
+✔ required values and arithmetic inconsistencies are flagged (0.3952ms)
+✔ date validity, confidence, tax sanity and negatives (0.3242ms)
+✔ rounding tolerance permits one cent and rejects larger errors (0.2671ms)
+✔ line multiplication and negative quantity are checked (0.2261ms)
+✔ cross verification only compares known fields and uses amount tolerance (0.4589ms)
+✔ offline extraction never calculates absent amounts (2.1226ms)
+✔ offline extraction stores an audit entry (0.6948ms)
+ℹ tests 32
 ℹ suites 0
-ℹ pass 25
+ℹ pass 30
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 2
 ℹ todo 0
-ℹ duration_ms 2601.1203
+ℹ duration_ms 3284.6544

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-29T14:42:34.938Z",
+  "timestamp": "2026-10-29T15:14:02.291Z",
   "checks": [
     "multi-file upload, queued processing, real OCR and corrupt-file isolation",
     "inline correction resolves validation and writes audit history",
@@ -10,5 +10,5 @@
   ],
   "errors": [],
   "recording": false,
-  "duration_seconds": 9
+  "duration_seconds": 8
 }

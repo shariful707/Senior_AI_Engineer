@@ -16,6 +16,10 @@ npm.cmd run dev
 
 Open **http://localhost:5173**. On macOS/Linux use `.venv/bin/python`, `npm`, and `cp .env.example .env`. Install Tesseract through your operating system package manager; set `TESSERACT_CMD` if it is not on PATH. The launcher starts the API, worker, parser and Vite client. Local records/files are stored under ignored `data/`.
 
+Fresh local offline workspaces automatically include five clearly labeled synthetic sample documents. Use **Sample documents** to load/view them again without duplicates. They use the real processing pipeline and are safe to edit. Set `SEED_SAMPLE_DOCUMENTS=false` to disable automatic loading.
+
+**Workspace settings** explains access, extraction and upload limits. Local mode needs no token. When server protection is enabled, the workspace token is a shared access password (`API_TOKEN`), not an AI API key; entered keys are verified before they are saved.
+
 Default mode uses SQLite and an explicit-label offline extractor. **OCR uses real Tesseract**. Provider extraction and semantic search are optional, configured through `.env`; the UI identifies the extraction mode. The offline parser is intended for reproducible examples, not arbitrary invoice layouts.
 
 ## Container stack
@@ -24,7 +28,7 @@ Default mode uses SQLite and an explicit-label offline extractor. **OCR uses rea
 docker compose up --build -d
 ```
 
-Open **http://localhost:3001**. The stack contains API/React assets, a worker, Python parser, PostgreSQL/pgvector and Redis. Under **Workspace access**, enter `API_TOKEN` (local Compose default: `local-workspace-token-change-me`). Set real access/internal tokens and database/Redis passwords before network deployment. Only the API binds a loopback host port.
+Open **http://localhost:3001**. The stack contains API/React assets, a worker, Python parser, PostgreSQL/pgvector and Redis. Under **Workspace settings**, enter `API_TOKEN` (local Compose default: `local-workspace-token-change-me`). Set real access/internal tokens and database/Redis passwords before network deployment. Only the API binds a loopback host port. Samples are available through the Sample documents button after access is verified.
 
 For model extraction, set `EXTRACTION_MODE=openai`, `OPENAI_API_KEY` and `OPENAI_MODEL`, then restart API/worker. Semantic search also needs PostgreSQL/pgvector, `SEMANTIC_SEARCH=true` and an embedding key. Existing documents need processing/reprocessing to generate initial embeddings; corrections refresh their vectors in background jobs.
 
@@ -57,6 +61,7 @@ Document routes require `Authorization: Bearer <API_TOKEN>` when a token is conf
 | GET | `/api/documents/:id/file` | Original download |
 | PATCH | `/api/documents/:id` | Partial invoice correction; optional `If-Match` revision |
 | POST | `/api/documents/:id/reprocess` | Requeue a terminal document |
+| POST | `/api/workspace/samples` | Idempotently queue the five synthetic examples; uses normal workspace authentication |
 
 `/documents` aliases are also supported. Public errors use `{ "error": { "code": "...", "message": "..." } }`.
 
@@ -68,11 +73,12 @@ npm.cmd test
 npm.cmd run build
 npm.cmd run eval
 node scripts/browser-check.mjs
+npm.cmd run test:workspace
 ```
 
 Install Chromium with `npx playwright install chromium` if needed. Fixtures are committed; regenerate with the virtual-environment Python and `eval/generate_fixtures.py`. Evaluation runs isolated services and writes measured results. Set dedicated `POSTGRES_TEST_URL` / `REDIS_TEST_URL` for service integration tests; CI provisions both.
 
-Saved local results: **25 Node tests passed, two service-dependent tests skipped; 14 Python tests passed; six browser checks passed**. Evaluation processed all 17 valid fixtures and rejected both intentional invalid files. Synthetic field matches are not a general real-world accuracy claim. Live AI/semantic retrieval and Docker/PostgreSQL/Redis execution were not verified in that local run.
+Saved local results: **30 Node tests passed, two service-dependent tests skipped; 14 Python tests passed; six original browser checks and nine workspace interaction groups passed**. Workspace checks cover all navigation/filter cards, sample loading, edits, downloads, pagination, invalid links, failure recovery, mobile controls and verified token access. Evaluation processed all 17 valid fixtures and rejected both intentional invalid files. Synthetic field matches are not a general real-world accuracy claim. Live AI/semantic retrieval and Docker/PostgreSQL/Redis execution were not verified in that local run.
 
 ## Design choices and limits
 

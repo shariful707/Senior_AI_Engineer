@@ -14,6 +14,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "npm run build --workspace apps/web",
     "test": "node scripts/test.mjs",
+    "test:workspace": "node scripts/workspace-check.mjs",
     "eval": "node eval/run-eval.mjs",
     "fixtures": "python eval/generate_fixtures.py"
   },
