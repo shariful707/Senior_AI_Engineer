@@ -66,6 +66,20 @@ CREATE TABLE IF NOT EXISTS jobs (
  locked_until ${time}, lock_token TEXT, last_error TEXT
 );
 CREATE INDEX IF NOT EXISTS jobs_pending_idx ON jobs(status,available_at);
+CREATE TABLE IF NOT EXISTS workspace_settings (
+ id TEXT PRIMARY KEY, data ${json} NOT NULL, updated_at ${time} NOT NULL
+);
+CREATE TABLE IF NOT EXISTS ai_runs (
+ id TEXT PRIMARY KEY, document_id TEXT REFERENCES documents(id) ON DELETE CASCADE,
+ task TEXT NOT NULL CHECK(task IN ('configure','summary','review','question')),
+ status TEXT NOT NULL CHECK(status IN ('queued','processing','completed','failed','cancelled')),
+ input ${json} NOT NULL, output ${json}, audit ${json}, document_revision INTEGER,
+ provider TEXT, model TEXT, created_at ${time} NOT NULL, updated_at ${time} NOT NULL,
+ locked_until ${time}, lock_token TEXT, attempts INTEGER NOT NULL DEFAULT 0,
+ error_message TEXT, processing_ms INTEGER
+);
+CREATE INDEX IF NOT EXISTS ai_runs_document_idx ON ai_runs(document_id,created_at);
+CREATE INDEX IF NOT EXISTS ai_runs_pending_idx ON ai_runs(status,created_at);
 CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at ${time} NOT NULL);
 `;
 }

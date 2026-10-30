@@ -4,6 +4,7 @@ import {Agent,fetch as httpFetch,FormData as MultipartFormData} from 'undici';
 import {config} from '../../api/src/config.js';
 import {extract,embed,ProcessingError} from '../../api/src/extraction.js';
 import {history,now,saveInvoice,reconcile,lockReconciliation} from '../../api/src/documents.js';
+import {getAISettings} from '../../api/src/ai/settings.js';
 const parserAgent=new Agent({headersTimeout:3600000,bodyTimeout:3600000});
 
 export async function runJob(db,job,{parseFetch=httpFetch}={}) {
@@ -23,6 +24,7 @@ export async function runJob(db,job,{parseFetch=httpFetch}={}) {
   try {
     const document=(await db.query('SELECT * FROM documents WHERE id=$1',[id])).rows[0];
     if(!document) throw new ProcessingError('Document no longer exists.');
+    const aiSettings=await getAISettings(db);
     if(job.task==='embedding'){
       const row=(await db.query('SELECT data FROM invoices WHERE document_id=$1',[id])).rows[0];
       if(row&&db.postgres){
@@ -60,8 +62,8 @@ export async function runJob(db,job,{parseFetch=httpFetch}={}) {
     const audit=async row=>db.query('INSERT INTO extraction_audits(id,document_id,timestamp,provider,model,prompt,raw_response,success) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[randomUUID(),id,now(),row.provider,row.model,row.prompt,row.raw_response,row.success]);
     // A tabular ledger is kept as individual expected records rather than invented invoice fields.
     let invoice=null;
-    if(!parsed.ledger_rows.length) invoice=await extract(parsed.pages.map(p=>p.raw_text).join('\n\n'),audit);
-    await history(db,id,'extraction_completed',{mode:config.extractionMode,ledger_rows:parsed.ledger_rows.length});
+    if(!parsed.ledger_rows.length) invoice=await extract(parsed.pages.map(p=>p.raw_text).join('\n\n'),audit,aiSettings);
+    await history(db,id,'extraction_completed',{mode:aiSettings.provider,model:aiSettings.provider==='offline'?null:aiSettings.model,ledger_rows:parsed.ledger_rows.length});
     await stage('validation');
     await db.transaction(async tx=>{
       await lockReconciliation(tx);
@@ -77,7 +79,7 @@ export async function runJob(db,job,{parseFetch=httpFetch}={}) {
         await tx.query("UPDATE documents SET status=$1,stage='done',updated_at=$2 WHERE id=$3",[bad?'needs_review':'completed',now(),id]);
       }
       await reconcile(tx,[id]);
-      await tx.query('UPDATE documents SET processing_ms=$1,extraction_mode=$2,error_message=NULL,revision=revision+1 WHERE id=$3',[Math.round(performance.now()-start),parsed.ledger_rows.length?'ledger':config.extractionMode,id]);
+      await tx.query('UPDATE documents SET processing_ms=$1,extraction_mode=$2,extraction_model=$3,error_message=NULL,revision=revision+1 WHERE id=$4',[Math.round(performance.now()-start),parsed.ledger_rows.length?'ledger':aiSettings.provider,parsed.ledger_rows.length||aiSettings.provider==='offline'?null:aiSettings.model,id]);
       await tx.query("UPDATE jobs SET status='done',locked_until=NULL WHERE id=$1 AND lock_token=$2",[job.id,job.lock_token]);
       await history(tx,id,'processing_completed',{processing_ms:Math.round(performance.now()-start)});
     });

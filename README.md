@@ -20,7 +20,17 @@ Fresh local offline workspaces automatically include five clearly labeled synthe
 
 **Workspace settings** explains access, extraction and upload limits. Local mode needs no token. When server protection is enabled, the workspace token is a shared access password (`API_TOKEN`), not an AI API key; entered keys are verified before they are saved.
 
-Default mode uses SQLite and an explicit-label offline extractor. **OCR uses real Tesseract**. Provider extraction and semantic search are optional, configured through `.env`; the UI identifies the extraction mode. The offline parser is intended for reproducible examples, not arbitrary invoice layouts.
+Default mode uses SQLite and an explicit-label offline extractor. **OCR uses real Tesseract**. Connect a real LLM through **AI settings**; the UI shows its provider/model. The offline parser is intended for reproducible examples, not arbitrary invoice layouts.
+
+## Connect a model
+
+For local AI, install/start [Ollama](https://docs.ollama.com/quickstart), install a model that fits your PC (for example `ollama pull qwen3.5:4b`), then open **AI settings → Local Ollama → Detect installed models → Test and enable AI**. Existing installed models can be used without downloading another. The worker tests a real structured response before switching the active connection. Initial model loading can take a minute or more; later requests are usually faster. Keep Ollama running while using AI.
+
+**Why no token?** Local Ollama runs on your PC and needs no cloud API key. The optional **workspace token** (`API_TOKEN`) is a shared password protecting this app's documents when access protection is enabled; it never connects an LLM. Local app access protection is off by default. A **provider API key** authenticates cloud model requests and is separate. Model input/output **tokens** are pieces of text, not credentials. The same explanation appears in Workspace settings and AI settings.
+
+Once connected, new invoices use the model for schema-validated extraction. Use **Reprocess** for existing documents. Open a processed document to **Summarize document**, **Explain review flags**, or **Ask AI**. Responses include checked source quotes, source navigation, history and provider/model metadata. Supported correction proposals open an editable draft; only **Save changes** writes them. Earlier responses are marked stale after document changes. Answers still require human review; exact quote checks do not prove every model claim.
+
+OpenAI and OpenAI-compatible providers are also supported in AI settings. Enter cloud keys only there. Saved keys are encrypted on the server, never returned to the browser. Back up `data/.ai-master-key` with your database, or set the same `AI_SETTINGS_ENCRYPTION_KEY` on API and worker. Successful workspace settings persist in the database and override extraction environment defaults. **Use offline extraction** disables the model and cancels pending assistant/configuration requests.
 
 ## Container stack
 
@@ -30,7 +40,7 @@ docker compose up --build -d
 
 Open **http://localhost:3001**. The stack contains API/React assets, a worker, Python parser, PostgreSQL/pgvector and Redis. Under **Workspace settings**, enter `API_TOKEN` (local Compose default: `local-workspace-token-change-me`). Set real access/internal tokens and database/Redis passwords before network deployment. Only the API binds a loopback host port. Samples are available through the Sample documents button after access is verified.
 
-For model extraction, set `EXTRACTION_MODE=openai`, `OPENAI_API_KEY` and `OPENAI_MODEL`, then restart API/worker. Semantic search also needs PostgreSQL/pgvector, `SEMANTIC_SEARCH=true` and an embedding key. Existing documents need processing/reprocessing to generate initial embeddings; corrections refresh their vectors in background jobs.
+For host Ollama from Docker, set its address in AI settings to `http://host.docker.internal:11434`. Ollama must accept connections from the container bridge; keep that service private to your machine. Compose supplies this URL as its default unless overridden. Alternatively configure `EXTRACTION_MODE=ollama`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, or `EXTRACTION_MODE=openai` plus `OPENAI_API_KEY` / `OPENAI_MODEL`, then restart API/worker. Stored workspace settings take precedence. Semantic search is configured separately: it needs PostgreSQL/pgvector, `SEMANTIC_SEARCH=true` and an embedding key through `OPENAI_API_KEY`. Connecting Ollama does not enable semantic embeddings. Existing documents need processing/reprocessing to generate initial embeddings; corrections refresh their vectors in background jobs.
 
 ## Architecture
 
@@ -62,6 +72,13 @@ Document routes require `Authorization: Bearer <API_TOKEN>` when a token is conf
 | PATCH | `/api/documents/:id` | Partial invoice correction; optional `If-Match` revision |
 | POST | `/api/documents/:id/reprocess` | Requeue a terminal document |
 | POST | `/api/workspace/samples` | Idempotently queue the five synthetic examples; uses normal workspace authentication |
+| GET | `/api/ai/settings` | Active provider/model metadata; never returns stored keys |
+| GET | `/api/ai/models?base_url=` | Detect installed local Ollama models |
+| POST | `/api/ai/configure` | Queue a real connection test; enable only after it passes |
+| POST | `/api/ai/disable` | Switch to offline extraction and cancel pending AI requests |
+| GET | `/api/ai/runs/:runId` | Connection/assistant request status and safe result |
+| GET | `/api/documents/:id/ai` | Latest 20 assistant responses with revision/stale status |
+| POST | `/api/documents/:id/ai` | Queue `summary`, `review` or `question` with a question up to 1,000 characters |
 
 `/documents` aliases are also supported. Public errors use `{ "error": { "code": "...", "message": "..." } }`.
 
@@ -74,11 +91,12 @@ npm.cmd run build
 npm.cmd run eval
 node scripts/browser-check.mjs
 npm.cmd run test:workspace
+npm.cmd run test:ai
 ```
 
 Install Chromium with `npx playwright install chromium` if needed. Fixtures are committed; regenerate with the virtual-environment Python and `eval/generate_fixtures.py`. Evaluation runs isolated services and writes measured results. Set dedicated `POSTGRES_TEST_URL` / `REDIS_TEST_URL` for service integration tests; CI provisions both.
 
-Saved local results: **30 Node tests passed, two service-dependent tests skipped; 14 Python tests passed; six original browser checks and nine workspace interaction groups passed**. Workspace checks cover all navigation/filter cards, sample loading, edits, downloads, pagination, invalid links, failure recovery, mobile controls and verified token access. Evaluation processed all 17 valid fixtures and rejected both intentional invalid files. Synthetic field matches are not a general real-world accuracy claim. Live AI/semantic retrieval and Docker/PostgreSQL/Redis execution were not verified in that local run.
+Saved local results: **39 Node tests passed, two service-dependent tests skipped; 14 Python tests passed; six original browser checks, nine workspace interaction groups and six AI interaction groups passed**. Evaluation processed all 17 valid fixtures and rejected both intentional invalid files. A real installed Ollama `qwen3.5:4b` also passed connection testing, sample invoice extraction and all three assistant tasks with checked citations: [measured live results](docs/llm-verification.json), [screenshot](docs/screenshots/local-ai.png). The AI browser suite uses a deterministic local HTTP provider for reproducible UI/error tests. Synthetic field matches and a single live invoice are not general accuracy claims. Cloud-provider execution, semantic retrieval and Docker/PostgreSQL/Redis execution were not verified locally.
 
 ## Design choices and limits
 

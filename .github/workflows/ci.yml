@@ -37,6 +37,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node scripts/browser-check.mjs
       - run: npm run test:workspace
+      - run: npm run test:ai
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,4 +47,5 @@ jobs:
             docs/evaluation.md
             docs/screenshots
             docs/workspace-results.json
+            docs/ai-browser-results.json
             data/**/services.log

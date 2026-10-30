@@ -13,6 +13,9 @@ import {enqueue,createDispatcher} from './queue.js';
 import {validatePatch} from '../../../packages/shared-types/invoice.js';
 import {embed} from './extraction.js';
 import {seedSamples,SAMPLE_BATCH} from './samples.js';
+import {getAISettings,getAIStatus,candidateSettings,AIError} from './ai/settings.js';
+import {localModels} from './ai/provider.js';
+import {enqueueAI,publicAIRun,disableAI} from './ai/runs.js';
 
 const statuses=['queued','processing','completed','needs_review','failed'];
 export class ApiError extends Error {constructor(status,code,message){super(message);this.status=status;this.code=code;}}
@@ -35,13 +38,25 @@ export async function createApp(db,{dispatcher=createDispatcher(),apiToken=confi
   app.use(helmet({contentSecurityPolicy:{directives:{'img-src':["'self'",'data:','blob:'],'frame-src':["'self'",'blob:']}}}));
   app.use(cors({origin:process.env.CORS_ORIGIN||'http://localhost:5173',exposedHeaders:['Content-Disposition']}));
   app.use(express.json({limit:'2mb'}));
-  app.get('/health',async(req,res)=>{await db.query('SELECT 1');res.json({status:'ok',database:db.postgres?'postgres':'sqlite',extraction_mode:config.extractionMode,semantic_search:config.semantic&&db.postgres&&Boolean(config.apiKey),authentication:Boolean(apiToken),limits:{max_upload_mb:config.maxUpload/1024/1024,max_files:20}});});
+  app.get('/health',async(req,res)=>{await db.query('SELECT 1');const ai=await getAIStatus(db);res.json({status:'ok',database:db.postgres?'postgres':'sqlite',extraction_mode:ai.provider,ai,semantic_search:config.semantic&&db.postgres&&Boolean(config.apiKey),authentication:Boolean(apiToken),limits:{max_upload_mb:config.maxUpload/1024/1024,max_files:20}});});
   const router=express.Router();
   router.use((req,res,next)=>{
     if(apiToken && !safeEqual(req.headers.authorization||'',`Bearer ${apiToken}`))return next(new ApiError(401,'UNAUTHORIZED','A valid workspace token is required.'));
     next();
   });
   router.use(rateLimit({windowMs:60000,limit:300,standardHeaders:'draft-8',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:{code:'RATE_LIMITED',message:'Too many requests; try again in a minute.'}})}));
+  const aiLimit=rateLimit({windowMs:60000,limit:20,standardHeaders:'draft-8',legacyHeaders:false,handler:(req,res)=>res.status(429).json({error:{code:'AI_RATE_LIMITED',message:'Too many AI requests. Wait a minute and retry.'}})});
+  router.get('/ai/settings',async(req,res)=>res.json(await getAIStatus(db)));
+  router.get('/ai/models',aiLimit,async(req,res)=>res.json({models:await localModels(typeof req.query.base_url==='string'?req.query.base_url:config.ollamaUrl)}));
+  router.post('/ai/configure',aiLimit,async(req,res)=>{
+    const settings=await candidateSettings(req.body,await getAISettings(db));
+    const id=await enqueueAI(db,{task:'configure',settings});
+    res.status(202).json({id,status:'queued',message:'The worker will test structured output before enabling this provider.'});
+  });
+  router.post('/ai/disable',aiLimit,async(req,res)=>res.json(await disableAI(db)));
+  router.get('/ai/runs/:runId',async(req,res)=>{
+    const run=await publicAIRun(db,req.params.runId);if(!run)throw new ApiError(404,'NOT_FOUND','AI request not found.');res.json(run);
+  });
   app.locals.loadSamples=async options=>{
     const documents=await seedSamples(db,options);
     for(const document of documents)if(document.status==='queued')void dispatcher.notify(document.id);
@@ -114,6 +129,22 @@ export async function createApp(db,{dispatcher=createDispatcher(),apiToken=confi
   router.get('/documents/:id',async(req,res)=>{
     const detail=await documentDetail(db,req.params.id);
     if(!detail)throw new ApiError(404,'NOT_FOUND','Document not found.');res.json(detail);
+  });
+  router.get('/documents/:id/ai',async(req,res)=>{
+    if(!(await db.query('SELECT id FROM documents WHERE id=$1',[req.params.id])).rows.length)throw new ApiError(404,'NOT_FOUND','Document not found.');
+    const ids=(await db.query("SELECT id FROM ai_runs WHERE document_id=$1 ORDER BY created_at DESC LIMIT 20",[req.params.id])).rows;
+    res.json({runs:await Promise.all(ids.map(row=>publicAIRun(db,row.id)))});
+  });
+  router.post('/documents/:id/ai',aiLimit,async(req,res)=>{
+    if(!req.body||typeof req.body!=='object'||Array.isArray(req.body)||Object.keys(req.body).some(key=>!['task','question'].includes(key)))throw new AIError('Invalid document assistant request.');
+    const {task,question=''}=req.body;
+    if(!['summary','review','question'].includes(task)||typeof question!=='string'||question.length>1000||task==='question'&&!question.trim())throw new AIError('Choose an AI task and enter a question of up to 1000 characters.');
+    const doc=(await db.query('SELECT status,revision FROM documents WHERE id=$1',[req.params.id])).rows[0];
+    if(!doc)throw new ApiError(404,'NOT_FOUND','Document not found.');
+    if(['queued','processing'].includes(doc.status))throw new ApiError(409,'DOCUMENT_BUSY','Wait for document processing to finish.');
+    if((await getAIStatus(db)).enabled!==true)throw new AIError('Connect a model in AI settings first.',409,'AI_NOT_CONFIGURED');
+    const id=await enqueueAI(db,{documentId:req.params.id,task,question:question.trim(),revision:doc.revision});
+    res.status(202).json({id,status:'queued'});
   });
   router.get('/documents/:id/file',async(req,res)=>{
     const row=(await db.query('SELECT storage_path,original_filename FROM documents WHERE id=$1',[req.params.id])).rows[0];

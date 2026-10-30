@@ -1,0 +1,74 @@
+{
+  "verified_at": "2026-10-30T08:37:22.142Z",
+  "timezone": "Asia/Dhaka",
+  "provider": "ollama",
+  "model": "qwen3.5:4b",
+  "cloud_api_key_required": false,
+  "workspace_authentication_enabled": false,
+  "installed_model_detection": "5 models returned by the real local Ollama server",
+  "connection": {
+    "status": "completed",
+    "latency_ms": 70298,
+    "usage": {
+      "input_tokens": 75,
+      "output_tokens": 6
+    }
+  },
+  "extraction": {
+    "filename": "sample-invoice.pdf",
+    "provider": "ollama",
+    "model": "qwen3.5:4b",
+    "invoice_number": "INV-1001",
+    "total": 1344,
+    "currency": "USD",
+    "processing_ms": 4460
+  },
+  "assistant": [
+    {
+      "task": "summary",
+      "status": "completed",
+      "model": "qwen3.5:4b",
+      "processing_ms": 7113,
+      "citations": 6,
+      "insufficient_evidence": false,
+      "usage": {
+        "input_tokens": 813,
+        "output_tokens": 307
+      }
+    },
+    {
+      "task": "review",
+      "status": "completed",
+      "model": "qwen3.5:4b",
+      "processing_ms": 6825,
+      "citations": 6,
+      "insufficient_evidence": false,
+      "usage": {
+        "input_tokens": 813,
+        "output_tokens": 292
+      }
+    },
+    {
+      "task": "question",
+      "status": "completed",
+      "model": "qwen3.5:4b",
+      "processing_ms": 4617,
+      "citations": 6,
+      "insufficient_evidence": false,
+      "usage": {
+        "input_tokens": 825,
+        "output_tokens": 194
+      }
+    }
+  ],
+  "browser": {
+    "rendered_real_answer": true,
+    "source_buttons_present": 6,
+    "page_errors": []
+  },
+  "limitations": [
+    "One synthetic invoice checked against the installed local model; not a general accuracy benchmark.",
+    "Initial model loading was substantially slower than warm assistant responses.",
+    "OpenAI/other cloud providers and local semantic embeddings were not live-tested."
+  ]
+}

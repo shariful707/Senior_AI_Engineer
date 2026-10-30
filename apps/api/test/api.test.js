@@ -21,7 +21,7 @@ test('authentication, consistent errors and parameter validation',async()=>{
 test('API and worker can initialize the same fresh SQLite database concurrently',async()=>{
   const file=path.join(temp,'concurrent.sqlite');
   const connections=await Promise.all([new Database({url:'',file}).open(),new Database({url:'',file}).open()]);
-  try{for(const connection of connections)assert.equal((await connection.query('SELECT count(*) AS n FROM schema_migrations')).rows[0].n,2);}
+  try{for(const connection of connections)assert.equal((await connection.query('SELECT count(*) AS n FROM schema_migrations')).rows[0].n,3);}
   finally{await Promise.all(connections.map(connection=>connection.close()));}
 });
 test('upload returns queued and stores a durable job',async()=>{

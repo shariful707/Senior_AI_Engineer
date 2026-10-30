@@ -4,12 +4,13 @@ import {Database} from '../../api/src/db/index.js';
 import {config} from '../../api/src/config.js';
 import {claimJob} from '../../api/src/queue.js';
 import {runJob} from './pipeline.js';
+import {claimAIRun,runAI} from '../../api/src/ai/runs.js';
 export async function startWorker(db) {
   let stopped=false, active=false, current=Promise.resolve();
   const tick=async id=>{
     if(stopped || active) return;
     active=true;
-    try {const job=await claimJob(db,id); if(job) await runJob(db,job);}
+    try {const job=await claimJob(db,id); if(job) await runJob(db,job);else{const aiRun=await claimAIRun(db);if(aiRun)await runAI(db,aiRun);}}
     catch(error) {console.error('Worker failure:',error.message);} finally {active=false;}
   };
   const timer=setInterval(()=>{if(!active) current=tick();},500);

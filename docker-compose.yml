@@ -54,10 +54,14 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:4b}
+      AI_SETTINGS_ENCRYPTION_KEY: ${AI_SETTINGS_ENCRYPTION_KEY:-}
       SEMANTIC_SEARCH: ${SEMANTIC_SEARCH:-false}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
     volumes: [uploads:/app/data]
+    extra_hosts: [host.docker.internal:host-gateway]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -73,6 +77,7 @@ services:
     command: [node, apps/worker/src/main.js]
     environment: *app-env
     volumes: [uploads:/app/data]
+    extra_hosts: [host.docker.internal:host-gateway]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}

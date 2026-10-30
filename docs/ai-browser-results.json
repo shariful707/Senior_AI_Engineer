@@ -1,0 +1,13 @@
+{
+  "verified_at": "2026-10-30T08:39:59.852Z",
+  "provider": "deterministic local HTTP test double; not a model-accuracy result",
+  "checks": [
+    "model detection and asynchronous connection activation work; workspace and provider keys are explained separately",
+    "summary generates a queued result with working source references",
+    "source-backed proposal opens an editable draft, requires explicit Save, revalidates and marks previous AI responses stale",
+    "document questions and response history work",
+    "provider failure is visible and Retry queues a successful replacement",
+    "mobile AI settings and offline switch work without overflow or page runtime errors"
+  ],
+  "page_errors": []
+}

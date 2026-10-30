@@ -27,8 +27,11 @@ export class Database {
       if (this.postgres) await db.exec(postgresSearch);
       if(this.postgres)await db.query("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS task TEXT NOT NULL DEFAULT 'process'");
       else if(!(await db.query('PRAGMA table_info(jobs)')).rows.some(c=>c.name==='task'))await db.exec("ALTER TABLE jobs ADD COLUMN task TEXT NOT NULL DEFAULT 'process'");
+      if(this.postgres)await db.query('ALTER TABLE documents ADD COLUMN IF NOT EXISTS extraction_model TEXT');
+      else if(!(await db.query('PRAGMA table_info(documents)')).rows.some(c=>c.name==='extraction_model'))await db.exec('ALTER TABLE documents ADD COLUMN extraction_model TEXT');
       await db.query('INSERT INTO schema_migrations(version,applied_at) VALUES (1,$1) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
       await db.query('INSERT INTO schema_migrations(version,applied_at) VALUES (2,$1) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
+      await db.query('INSERT INTO schema_migrations(version,applied_at) VALUES (3,$1) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
     });
     return this;
   }
