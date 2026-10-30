@@ -55,7 +55,11 @@ React → Express upload API → transactional document/job storage → backgrou
 | `packages/shared-types` | Invoice schema and runtime validation |
 | `eval` | Labeled synthetic fixtures and measured evaluation |
 
-[Architecture](docs/architecture.md) · [Database schema](docs/schema.md) · [Evaluation](docs/evaluation.md) · [Test results](docs/test-results.md) · [AI prompts/disclosure](docs/ai-prompts.md) · [Recorded demo](docs/walkthrough.webm)
+[Architecture](docs/architecture.md) · [Database schema](docs/schema.md) · [Evaluation](docs/evaluation.md) · [Test results](docs/test-results.md) · [AI usage disclosure and prompts](docs/ai-prompts.md) · [Recorded demo](docs/walkthrough.webm)
+
+## AI usage disclosure
+
+This project was developed with substantial OpenAI Codex assistance across application code, UI, tests, synthetic fixtures, debugging and documentation. The [AI usage disclosure and prompt reference](docs/ai-prompts.md) documents that scope, exact runtime prompts, source links, data handling and the distinction between controlled tests and live model verification. Reported results come from executed checks and saved artifacts; the synthetic evaluation and one-invoice Ollama check are not general real-world accuracy claims.
 
 ## API
 
